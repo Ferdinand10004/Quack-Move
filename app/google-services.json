@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "103391993083",
+    "project_id": "quack-bc49c",
+    "storage_bucket": "quack-bc49c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103391993083:android:f22b0dda21bc43341ba45e",
+        "android_client_info": {
+          "package_name": "com.quackmove.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLGCCd6YindoBzj5H8o3ou6-Lmge-bKLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -21,6 +21,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
 rootProject.name = "QuackMove"
 include(":app")
