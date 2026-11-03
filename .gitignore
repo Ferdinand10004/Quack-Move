@@ -1,35 +1,28 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
+/.idea
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 
-# Android Studio
-.idea/
-*.iml
-
-# Gradle
+# Archivos generados por Android Studio
 .gradle/
+.idea/
+.kotlin/
 **/build/
-
-# Archivos locales
 local.properties
 
 # Archivos privados
+.env
+.env.*
+key.properties
 *.jks
 *.keystore
-*.key
-*.pem
 
 # Archivos temporales
 *.log
+*.apk
+*.aab
+errores-kotlin.txt
