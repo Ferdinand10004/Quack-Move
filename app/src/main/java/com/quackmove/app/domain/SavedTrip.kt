@@ -1,4 +1,3 @@
-
 package com.quackmove.app.domain
 
 data class SavedTrip(

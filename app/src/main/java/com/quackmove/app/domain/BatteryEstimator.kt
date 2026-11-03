@@ -1,4 +1,3 @@
-
 package com.quackmove.app.domain
 
 import kotlin.math.max

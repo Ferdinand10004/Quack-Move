@@ -1,4 +1,3 @@
-
 package com.quackmove.app.data.model
 
 data class ChargingStation(

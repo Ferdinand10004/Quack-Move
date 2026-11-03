@@ -6,3 +6,23 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# Archivos generados por Android Studio
+.gradle/
+.idea/
+.kotlin/
+**/build/
+local.properties
+
+# Archivos privados
+.env
+.env.*
+key.properties
+*.jks
+*.keystore
+
+# Archivos temporales
+*.log
+*.apk
+*.aab
+errores-kotlin.txt

@@ -1,24 +1,23 @@
-
 package com.quackmove.app.navigation
 
-import com.quackmove.app.feature.home.MapScreen
-import com.quackmove.app.feature.chargers.ChargersScreen
-import com.quackmove.app.feature.registration.RegistrationScreen
-import com.quackmove.app.feature.routes.RoutesScreen
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.quackmove.app.feature.chargers.ChargersScreen
+import com.quackmove.app.feature.registration.RegistrationScreen
+import com.quackmove.app.feature.routes.RoutesScreen
 
 object QuackMoveRoutes {
-    const val MAP = "mapa"
-    const val REGISTRATION = "registro"
-    const val CHARGERS = "cargadores"
-    const val ROUTES = "rutas"
-    const val ROUTE_DESTINATION = "rutas/{destination}"
+    const val MAP = "map"
+    const val REGISTRATION = "registration"
+    const val CHARGERS = "chargers"
+    const val ROUTES = "routes"
+    const val ROUTE_DESTINATION = "routes/{destination}"
 }
 
 @Composable
@@ -28,10 +27,12 @@ fun QuackMoveNavigation(
         onOpenRegistration: () -> Unit,
         onOpenChargers: () -> Unit,
         onOpenRoute: (String) -> Unit
-    ) -> Unit
+    ) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
+        modifier = modifier,
         startDestination = QuackMoveRoutes.MAP
     ) {
 

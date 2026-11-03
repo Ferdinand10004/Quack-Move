@@ -4,15 +4,53 @@ import android.view.ViewGroup
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,36 +58,35 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.quackmove.app.data.repository.DemoDestinationsRepository
 import kotlinx.coroutines.launch
 import org.maplibre.android.maps.MapView
 
+// Colores originales de QuackMove
 private val ButtonBackground = Color(0xFF111827)
 private val ButtonBorder = Color(0xFF405174)
 private val MintGreen = Color(0xFF43E6B3)
 private val Purple = Color(0xFFB6A0FF)
-
 private val PrimaryText = Color(0xFFF5F6FF)
 private val SecondaryText = Color(0xFFB6C2DF)
 private val PanelBackground = Color(0xFF142039)
 
+// =====================================
+// PANTALLA PRINCIPAL
+// =====================================
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-
     mapView: MapView,
-
     onMapStyleChange: (Boolean) -> Unit,
-
     onReturnToCenter: () -> Unit,
-
     onOpenRegistration: () -> Unit,
-
     onOpenChargers: () -> Unit,
-
-    onOpenRoute: (String) -> Unit
-
+    onOpenRoute: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     val scope = rememberCoroutineScope()
@@ -64,33 +101,44 @@ fun MapScreen(
         SnackbarHostState()
     }
 
-    val model: HomeViewModel = viewModel()
-    val searchText = model.searchText
+    // ViewModel con StateFlow
+    val factory = remember {
+        HomeViewModelFactory(
+            repository = DemoDestinationsRepository
+        )
+    }
+
+    val model: HomeViewModel = viewModel(
+        factory = factory
+    )
+
+    // Observar el estado de la pantalla principal
+    val state by model.uiState.collectAsStateWithLifecycle()
+
+    val searchText = state.searchText
 
     val searchExpanded =
         scaffoldState.bottomSheetState.currentValue ==
                 SheetValue.Expanded
 
+    // =====================================
+    // MENÚ LATERAL
+    // =====================================
+
     ModalNavigationDrawer(
-
+        modifier = modifier,
         drawerState = drawerState,
-
         gesturesEnabled = false,
 
         drawerContent = {
 
             ModalDrawerSheet(
-
                 modifier = Modifier.width(300.dp),
-
                 drawerContainerColor = PanelBackground,
-
                 drawerContentColor = PrimaryText
-
             ) {
 
                 Row(
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
@@ -99,7 +147,6 @@ fun MapScreen(
 
                     horizontalArrangement =
                         Arrangement.SpaceBetween
-
                 ) {
 
                     Text(
@@ -109,22 +156,16 @@ fun MapScreen(
                     )
 
                     IconButton(
-
                         onClick = {
-
                             scope.launch {
                                 drawerState.close()
                             }
                         }
-
                     ) {
 
                         Icon(
-
                             imageVector = Icons.Default.Close,
-
                             contentDescription = "Cerrar menú",
-
                             tint = PrimaryText
                         )
                     }
@@ -135,7 +176,6 @@ fun MapScreen(
                 )
 
                 NavigationDrawerItem(
-
                     label = {
                         Text("Mapa principal")
                     },
@@ -143,7 +183,6 @@ fun MapScreen(
                     selected = true,
 
                     onClick = {
-
                         scope.launch {
                             drawerState.close()
                         }
@@ -153,17 +192,13 @@ fun MapScreen(
                 )
 
                 NavigationDrawerItem(
-
                     label = {
                         Text("Crear cuenta")
                     },
 
                     icon = {
-
                         Icon(
-
                             imageVector = Icons.Default.PersonAdd,
-
                             contentDescription = null
                         )
                     },
@@ -171,11 +206,8 @@ fun MapScreen(
                     selected = false,
 
                     onClick = {
-
                         scope.launch {
-
                             drawerState.close()
-
                             onOpenRegistration()
                         }
                     },
@@ -186,31 +218,26 @@ fun MapScreen(
                 )
 
                 HorizontalDivider(
-
-                    modifier = Modifier.padding(
-                        vertical = 16.dp
-                    ),
-
+                    modifier = Modifier.padding(vertical = 16.dp),
                     color = ButtonBorder
                 )
 
                 Text(
-
-                    text = "Mi vehículo, favoritos y configuración estarán disponibles próximamente.",
-
+                    text = "Mi vehículo, favoritos y configuración " +
+                            "estarán disponibles próximamente.",
                     modifier = Modifier.padding(20.dp),
-
                     color = SecondaryText,
-
                     fontSize = 14.sp
                 )
             }
         }
-
     ) {
 
-        BottomSheetScaffold(
+        // =====================================
+        // PANEL INFERIOR DE BÚSQUEDA
+        // =====================================
 
+        BottomSheetScaffold(
             scaffoldState = scaffoldState,
 
             sheetPeekHeight = 104.dp,
@@ -220,9 +247,7 @@ fun MapScreen(
             sheetContentColor = PrimaryText,
 
             sheetShape = RoundedCornerShape(
-
                 topStart = 28.dp,
-
                 topEnd = 28.dp
             ),
 
@@ -231,55 +256,31 @@ fun MapScreen(
             sheetContent = {
 
                 Column(
-
                     modifier = Modifier
-
                         .fillMaxWidth()
-
                         .heightIn(min = 430.dp)
-
                         .navigationBarsPadding()
-
-                        .verticalScroll(
-                            rememberScrollState()
-                        )
-
+                        .verticalScroll(rememberScrollState())
                         .padding(
-
                             start = 18.dp,
-
                             end = 18.dp,
-
                             top = 12.dp,
-
                             bottom = 20.dp
                         )
-
                 ) {
 
+                    // Barra para expandir el panel
                     Box(
-
                         modifier = Modifier
-
-                            .align(
-                                Alignment.CenterHorizontally
-                            )
-
+                            .align(Alignment.CenterHorizontally)
                             .width(46.dp)
-
                             .height(4.dp)
-
                             .background(
-
                                 color = Color(0xFF7985AC),
-
                                 shape = CircleShape
                             )
-
                             .clickable {
-
                                 scope.launch {
-
                                     scaffoldState
                                         .bottomSheetState
                                         .expand()
@@ -291,21 +292,20 @@ fun MapScreen(
                         modifier = Modifier.height(16.dp)
                     )
 
+                    // =====================================
+                    // BÚSQUEDA DE DESTINOS
+                    // =====================================
+
                     DestinationSearchBar(
-
                         text = searchText,
-
                         expanded = searchExpanded,
 
                         onTextChange = { newText ->
-
                             model.updateSearchText(newText)
                         },
 
                         onExpand = {
-
                             scope.launch {
-
                                 scaffoldState
                                     .bottomSheetState
                                     .expand()
@@ -317,16 +317,15 @@ fun MapScreen(
                         modifier = Modifier.height(26.dp)
                     )
 
+                    // =====================================
+                    // DESTINOS Y RECIENTES
+                    // =====================================
+
                     if (searchText.isBlank()) {
 
                         Text(
-
                             text = "Tus destinos",
-
-                            style = MaterialTheme
-                                .typography
-                                .titleMedium,
-
+                            style = MaterialTheme.typography.titleMedium,
                             color = PrimaryText
                         )
 
@@ -335,15 +334,11 @@ fun MapScreen(
                         )
 
                         QuickDestinations(
-
                             onDestinationSelected = { destination ->
 
                                 if (destination == "Cargadores") {
-
                                     onOpenChargers()
-
                                 } else {
-
                                     onOpenRoute(destination)
                                 }
                             }
@@ -354,19 +349,14 @@ fun MapScreen(
                         )
 
                         RecentDestinations(
-                            destinations = model.recentDestinations,
+                            destinations = state.recentDestinations,
 
                             onDestinationSelected = { destination ->
-
-                                onOpenRoute(
-                                    destination.name
-                                )
+                                onOpenRoute(destination.name)
                             },
 
                             onViewAll = {
-
                                 scope.launch {
-
                                     snackbarHostState.showSnackbar(
                                         "Mostrando todos los destinos recientes"
                                     )
@@ -376,16 +366,15 @@ fun MapScreen(
 
                     } else {
 
-                        val results = model.searchResults
+                        // =====================================
+                        // RESULTADOS DE BÚSQUEDA
+                        // =====================================
+
+                        val results = state.searchResults
 
                         Text(
-
                             text = "Resultados de búsqueda",
-
-                            style = MaterialTheme
-                                .typography
-                                .titleMedium,
-
+                            style = MaterialTheme.typography.titleMedium,
                             color = PrimaryText
                         )
 
@@ -396,11 +385,8 @@ fun MapScreen(
                         if (results.isEmpty()) {
 
                             Text(
-
                                 text = "No se encontraron destinos.",
-
                                 color = SecondaryText,
-
                                 modifier = Modifier.padding(
                                     vertical = 16.dp
                                 )
@@ -411,35 +397,21 @@ fun MapScreen(
                             results.forEach { place ->
 
                                 Row(
-
                                     modifier = Modifier
-
                                         .fillMaxWidth()
-
                                         .clickable {
-
-                                            onOpenRoute(
-                                                place.first
-                                            )
+                                            onOpenRoute(place.first)
                                         }
-
-                                        .padding(
-                                            vertical = 12.dp
-                                        ),
+                                        .padding(vertical = 12.dp),
 
                                     verticalAlignment =
                                         Alignment.CenterVertically
-
                                 ) {
 
                                     Icon(
-
                                         imageVector = Icons.Default.Place,
-
                                         contentDescription = null,
-
                                         tint = Purple,
-
                                         modifier = Modifier.size(24.dp)
                                     )
 
@@ -448,26 +420,18 @@ fun MapScreen(
                                     )
 
                                     Column(
-
                                         modifier = Modifier.weight(1f)
-
                                     ) {
 
                                         Text(
-
                                             text = place.first,
-
                                             color = PrimaryText,
-
                                             fontSize = 15.sp
                                         )
 
                                         Text(
-
                                             text = place.second,
-
                                             color = SecondaryText,
-
                                             fontSize = 12.sp
                                         )
                                     }
@@ -483,7 +447,6 @@ fun MapScreen(
             },
 
             snackbarHost = {
-
                 SnackbarHost(
                     hostState = snackbarHostState
                 )
@@ -491,12 +454,15 @@ fun MapScreen(
 
         ) { _ ->
 
+            // =====================================
+            // MAPA PRINCIPAL
+            // =====================================
+
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
 
                 AndroidView(
-
                     factory = {
 
                         (mapView.parent as? ViewGroup)
@@ -508,22 +474,15 @@ fun MapScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
+                // Botones flotantes del mapa
                 Row(
-
                     modifier = Modifier
-
                         .fillMaxWidth()
-
                         .align(Alignment.TopCenter)
-
                         .statusBarsPadding()
-
                         .padding(
-
                             start = 16.dp,
-
                             end = 16.dp,
-
                             top = 16.dp
                         ),
 
@@ -531,21 +490,16 @@ fun MapScreen(
                         Arrangement.SpaceBetween,
 
                     verticalAlignment = Alignment.Top
-
                 ) {
 
+                    // Abrir menú lateral
                     MapActionButton(
-
                         icon = Icons.Default.Menu,
-
-                        descripcion = "Abrir menú",
-
+                        description = "Abrir menú",
                         iconColor = PrimaryText,
-
                         circular = false,
 
                         onClick = {
-
                             scope.launch {
                                 drawerState.open()
                             }
@@ -553,48 +507,47 @@ fun MapScreen(
                     )
 
                     Column(
-
                         verticalArrangement =
                             Arrangement.spacedBy(12.dp)
-
                     ) {
 
+                        // =====================================
+                        // CAMBIAR ESTILO DEL MAPA
+                        // =====================================
+
                         MapActionButton(
-
                             icon = Icons.Default.Layers,
-
-                            descripcion = "Cambiar estilo del mapa",
-
+                            description = "Cambiar estilo del mapa",
                             iconColor = PrimaryText,
 
                             onClick = {
-
-                                model.toggleDarkMap()
-
-                                onMapStyleChange(model.darkMap)
+                                onMapStyleChange(
+                                    model.toggleDarkMap()
+                                )
                             }
                         )
 
+                        // =====================================
+                        // ABRIR CARGADORES
+                        // =====================================
+
                         MapActionButton(
-
                             icon = Icons.Default.FlashOn,
-
-                            descripcion = "Mostrar cargadores",
-
+                            description = "Mostrar cargadores",
                             iconColor = MintGreen,
 
                             onClick = {
-
                                 onOpenChargers()
                             }
                         )
 
+                        // =====================================
+                        // CENTRAR MAPA
+                        // =====================================
+
                         MapActionButton(
-
                             icon = Icons.Default.Navigation,
-
-                            descripcion = "Volver a Villa Nueva",
-
+                            description = "Volver a Villa Nueva",
                             iconColor = Purple,
 
                             onClick = {
@@ -602,7 +555,6 @@ fun MapScreen(
                                 onReturnToCenter()
 
                                 scope.launch {
-
                                     snackbarHostState.showSnackbar(
                                         "Mapa centrado en Villa Nueva"
                                     )
@@ -616,67 +568,48 @@ fun MapScreen(
     }
 }
 
+// =====================================
+// COMPONENTE REUTILIZABLE
+// BOTÓN FLOTANTE DEL MAPA
+// =====================================
+
 @Composable
 fun MapActionButton(
-
     icon: ImageVector,
-
-    descripcion: String,
-
+    description: String,
     iconColor: Color,
-
     circular: Boolean = true,
-
-    onClick: () -> Unit
-
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
-    val forma = if (circular) {
-
+    val buttonShape = if (circular) {
         CircleShape
-
     } else {
-
         RoundedCornerShape(16.dp)
     }
 
     Surface(
-
-        modifier = Modifier.size(52.dp),
-
-        shape = forma,
-
+        modifier = modifier.size(52.dp),
+        shape = buttonShape,
         color = ButtonBackground,
-
         border = BorderStroke(
-
             width = 1.dp,
-
             color = ButtonBorder
         ),
-
         shadowElevation = 6.dp,
-
         onClick = onClick
-
     ) {
 
         Box(
-
             modifier = Modifier.fillMaxSize(),
-
             contentAlignment = Alignment.Center
-
         ) {
 
             Icon(
-
                 imageVector = icon,
-
-                contentDescription = descripcion,
-
+                contentDescription = description,
                 tint = iconColor,
-
                 modifier = Modifier.size(26.dp)
             )
         }

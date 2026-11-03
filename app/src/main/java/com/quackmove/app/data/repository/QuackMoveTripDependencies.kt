@@ -1,4 +1,3 @@
-
 package com.quackmove.app.data.repository
 
 import com.google.firebase.auth.FirebaseAuth

@@ -1,27 +1,52 @@
-
 package com.quackmove.app.feature.chargers
 
-import com.quackmove.app.data.model.ChargingStation
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.EvStation
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.quackmove.app.data.model.ChargingStation
+import com.quackmove.app.data.repository.GoogleChargingRepository
+import com.quackmove.app.feature.routes.rememberInternetAvailable
 
-// Colores originales de QuackMove
+// =====================================
+// COLORES DE QUACKMOVE
+// =====================================
+
 private val ChargingBackground = Color(0xFF101928)
 private val ChargingSurface = Color(0xFF192940)
 private val ChargingBorder = Color(0xFF405174)
@@ -29,40 +54,76 @@ private val ChargingText = Color(0xFFF5F6FF)
 private val ChargingSecondaryText = Color(0xFFB6C2DF)
 private val ChargingGreen = Color(0xFF43E6B3)
 private val ChargingPurple = Color(0xFFB6A0FF)
+private val ChargingWarning = Color(0xFFFFB86B)
+private val OfflineBackground = Color(0xFF3D3028)
+
+// =====================================
+// PANTALLA PRINCIPAL DE CARGADORES
+// =====================================
 
 @Composable
 fun ChargersScreen(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    val model: ChargersViewModel = viewModel()
-    val filteredStations = model.filteredStations
+
+    // Inyección manual del Repository
+    val factory = remember {
+        ChargersViewModelFactory(
+            repository = GoogleChargingRepository
+        )
+    }
+
+    // Crear ViewModel mediante su Factory
+    val model: ChargersViewModel = viewModel(
+        factory = factory
+    )
+
+    // Observar el StateFlow del ViewModel
+    val state by model.uiState.collectAsStateWithLifecycle()
+
+    // Consultar estado de Internet
+    val internetAvailable = rememberInternetAvailable()
+
+    // Estaciones filtradas
+    val filteredStations = state.filteredStations
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         color = ChargingBackground
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
 
-            // Encabezado original
+            // =====================================
+            // ENCABEZADO
+            // =====================================
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
+
+                IconButton(
+                    onClick = onBack
+                ) {
+
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector =
+                            Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver al mapa",
                         tint = ChargingText
                     )
                 }
 
                 Column {
+
                     Text(
                         text = "Cargadores cercanos",
                         color = ChargingText,
@@ -78,59 +139,115 @@ fun ChargersScreen(
                 }
             }
 
-            // Filtros de estaciones
+            // =====================================
+            // M10: ESTADO SIN CONEXIÓN
+            // =====================================
+
+            if (!internetAvailable) {
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    color = OfflineBackground,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(6.dp)
+                    ) {
+
+                        Text(
+                            text = "Sin conexión a Internet",
+                            color = ChargingWarning,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp
+                        )
+
+                        Text(
+                            text = if (state.stations.isNotEmpty()) {
+                                "Se muestran los cargadores " +
+                                        "cargados anteriormente. " +
+                                        "Activa Internet para actualizar."
+                            } else {
+                                "Conéctate a Internet para " +
+                                        "consultar las estaciones de carga."
+                            },
+                            color = ChargingSecondaryText,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
+            }
+
+            // =====================================
+            // FILTROS DE ESTACIONES
+            // =====================================
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp)
             ) {
+
+                // Disponibilidad
                 FilterChip(
-                    selected = model.availableOnly,
-                    enabled = model.hasAvailability,
-                    onClick = {
-                        model.toggleAvailableOnly()
-                    },
+                    selected = state.availableOnly,
+                    enabled = state.hasAvailability,
+                    onClick = model::toggleAvailableOnly,
                     label = {
                         Text("Disponibles")
                     }
                 )
 
+                // Conectores CCS2
                 FilterChip(
-                    selected = model.ccs2Only,
-                    enabled = model.hasConnectorInfo,
-                    onClick = {
-                        model.toggleCcs2Only()
-                    },
+                    selected = state.ccs2Only,
+                    enabled = state.hasConnectorInfo,
+                    onClick = model::toggleCcs2Only,
                     label = {
                         Text("CCS2")
                     }
                 )
 
+                // Carga rápida
                 FilterChip(
-                    selected = model.fastOnly,
-                    enabled = model.hasPowerInfo,
-                    onClick = {
-                        model.toggleFastOnly()
-                    },
+                    selected = state.fastOnly,
+                    enabled = state.hasPowerInfo,
+                    onClick = model::toggleFastOnly,
                     label = {
                         Text("Rápidos")
                     }
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
 
-            // Resultados y actualización
+            // =====================================
+            // RESULTADOS Y ACTUALIZAR
+            // =====================================
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Text(
-                    text = if (model.isLoading) {
+                    text = if (state.isLoading) {
                         "Buscando estaciones..."
                     } else {
                         "${filteredStations.size} estaciones encontradas"
@@ -139,20 +256,29 @@ fun ChargersScreen(
                     fontSize = 13.sp
                 )
 
+                // Deshabilitar si no hay Internet
+                // o ya hay una consulta en proceso
                 TextButton(
-                    onClick = {
-                        model.refreshStations()
-                    },
-                    enabled = !model.isLoading
+                    onClick = model::refreshStations,
+                    enabled = !state.isLoading &&
+                            internetAvailable
                 ) {
+
                     Text(
                         text = "Actualizar",
-                        color = ChargingGreen
+                        color = if (internetAvailable) {
+                            ChargingGreen
+                        } else {
+                            ChargingSecondaryText
+                        }
                     )
                 }
             }
 
-            // Atribución de Google
+            // =====================================
+            // ATRIBUCIÓN DE GOOGLE
+            // =====================================
+
             Text(
                 text = "Google Maps",
                 color = ChargingText,
@@ -164,9 +290,14 @@ fun ChargersScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
-            // Lista de estaciones
+            // =====================================
+            // LISTA DE ESTACIONES
+            // =====================================
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -174,18 +305,25 @@ fun ChargersScreen(
                     end = 16.dp,
                     bottom = 24.dp
                 ),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
 
-                // Indicador mientras consulta Google
-                if (model.isLoading) {
+                // =====================================
+                // M10: ESTADO DE CARGA
+                // =====================================
+
+                if (state.isLoading) {
+
                     item {
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(20.dp),
                             contentAlignment = Alignment.Center
                         ) {
+
                             CircularProgressIndicator(
                                 color = ChargingGreen
                             )
@@ -193,32 +331,56 @@ fun ChargersScreen(
                     }
                 }
 
-                // Error de conexión
-                model.errorMessage?.let { message ->
+                // =====================================
+                // M10: ESTADO DE ERROR
+                // =====================================
+
+                state.errorMessage?.let { message ->
+
                     item {
+
                         Text(
                             text = message,
-                            color = Color(0xFFFFB86B),
+                            color = ChargingWarning,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
 
-                // Estaciones obtenidas
-                items(filteredStations) { station ->
-                    ChargingStationCard(station)
+                // =====================================
+                // RESULTADOS OBTENIDOS
+                // =====================================
+
+                items(
+                    items = filteredStations
+                ) { station ->
+
+                    ChargingStationCard(
+                        station = station
+                    )
                 }
 
-                // No se encontraron estaciones
+                // =====================================
+                // M10: ESTADO VACÍO
+                // =====================================
+
                 if (
-                    !model.isLoading &&
-                    model.errorMessage == null &&
+                    !state.isLoading &&
+                    state.errorMessage == null &&
                     filteredStations.isEmpty()
                 ) {
+
                     item {
+
                         Text(
-                            text = "No se encontraron estaciones que coincidan con los filtros.",
+                            text = if (!internetAvailable) {
+                                "No hay estaciones cargadas. " +
+                                        "Conéctate a Internet para buscarlas."
+                            } else {
+                                "No se encontraron estaciones " +
+                                        "que coincidan con los filtros."
+                            },
                             color = ChargingSecondaryText,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -229,12 +391,19 @@ fun ChargersScreen(
     }
 }
 
+// =====================================
+// COMPONENTE REUTILIZABLE
+// TARJETA DE ESTACIÓN
+// =====================================
+
 @Composable
 private fun ChargingStationCard(
-    station: ChargingStation
+    station: ChargingStation,
+    modifier: Modifier = Modifier
 ) {
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         color = ChargingSurface,
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(
@@ -242,15 +411,23 @@ private fun ChargingStationCard(
             color = ChargingBorder
         )
     ) {
+
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(12.dp)
         ) {
+
+            // =====================================
+            // NOMBRE Y DIRECCIÓN
+            // =====================================
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
+
                 Icon(
                     imageVector = Icons.Default.EvStation,
                     contentDescription = null,
@@ -261,6 +438,7 @@ private fun ChargingStationCard(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
+
                     Text(
                         text = station.name,
                         color = ChargingText,
@@ -285,11 +463,18 @@ private fun ChargingStationCard(
                 color = ChargingBorder
             )
 
+            // =====================================
+            // INFORMACIÓN DE CARGA
+            // =====================================
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement =
+                    Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // Tipo de conector
                 Text(
                     text = station.connector
                         ?: "Conector sin datos",
@@ -297,9 +482,11 @@ private fun ChargingStationCard(
                     fontSize = 12.sp
                 )
 
+                // Potencia
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.Bolt,
                         contentDescription = null,
@@ -316,6 +503,7 @@ private fun ChargingStationCard(
                     )
                 }
 
+                // Disponibilidad
                 Text(
                     text = when (station.available) {
                         true -> "Disponible"
@@ -324,7 +512,7 @@ private fun ChargingStationCard(
                     },
                     color = when (station.available) {
                         true -> ChargingGreen
-                        false -> Color(0xFFFFB86B)
+                        false -> ChargingWarning
                         null -> ChargingSecondaryText
                     },
                     fontSize = 12.sp

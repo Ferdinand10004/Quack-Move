@@ -1,14 +1,13 @@
-
 package com.quackmove.app.data.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import java.io.IOException
 
-// Información real de una ruta
+// Información de una ruta calculada.
 data class RouteSummary(
     val origin: String,
     val destination: String,
@@ -16,10 +15,10 @@ data class RouteSummary(
     val drivingMinutes: Int
 )
 
-// Comunicación con nuestro servidor Python
-object GoogleRoutesRepository {
+// Implementación que consulta nuestro servidor.
+object GoogleRoutesRepository : RoutesRepository {
 
-    suspend fun fetchRoute(): RouteSummary =
+    override suspend fun fetchRoute(): RouteSummary =
         withContext(Dispatchers.IO) {
 
             val connection = URL(
@@ -33,7 +32,7 @@ object GoogleRoutesRepository {
 
                 if (connection.responseCode != 200) {
                     throw IOException(
-                        "Error al obtener la ruta: HTTP ${connection.responseCode}"
+                        "Error HTTP ${connection.responseCode}"
                     )
                 }
 
@@ -47,7 +46,9 @@ object GoogleRoutesRepository {
                     origin = json.getString("origen"),
                     destination = json.getString("destino"),
                     distanceKm = json.getDouble("distanciaKm"),
-                    drivingMinutes = json.getInt("tiempoConduccionMin")
+                    drivingMinutes = json.getInt(
+                        "tiempoConduccionMin"
+                    )
                 )
 
             } finally {

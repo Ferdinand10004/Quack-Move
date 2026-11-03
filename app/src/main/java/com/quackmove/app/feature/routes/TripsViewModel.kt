@@ -1,4 +1,3 @@
-
 package com.quackmove.app.feature.routes
 
 import androidx.lifecycle.ViewModel
@@ -22,7 +21,9 @@ data class TripsUiState(
 )
 
 class TripsViewModel(
-    private val repository: TripRepository
+    private val repository: TripRepository,
+    private val successMessage: String =
+        "Viaje guardado en Firestore."
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TripsUiState())
@@ -99,7 +100,8 @@ class TripsViewModel(
 
                 _uiState.update {
                     it.copy(
-                        message = "Viaje guardado en Firestore."
+                        message = successMessage
+
                     )
                 }
 
@@ -131,18 +133,31 @@ class TripsViewModel(
 }
 
 // Inyección manual del Repository
+
+// Inyección manual del Repository.
 class TripsViewModelFactory(
-    private val repository: TripRepository
+    private val repository: TripRepository,
+    private val successMessage: String =
+        "Viaje guardado en Firestore."
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(
         modelClass: Class<T>
     ): T {
-        if (modelClass.isAssignableFrom(TripsViewModel::class.java)) {
+
+        if (modelClass.isAssignableFrom(
+                TripsViewModel::class.java
+            )
+        ) {
             @Suppress("UNCHECKED_CAST")
-            return TripsViewModel(repository) as T
+            return TripsViewModel(
+                repository,
+                successMessage
+            ) as T
         }
 
-        throw IllegalArgumentException("ViewModel desconocido")
+        throw IllegalArgumentException(
+            "ViewModel desconocido"
+        )
     }
 }

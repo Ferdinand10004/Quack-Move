@@ -1,13 +1,12 @@
-
 package com.quackmove.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
-import com.quackmove.app.ui.theme.QuackMoveTheme
 import com.quackmove.app.feature.home.MapScreen
 import com.quackmove.app.navigation.QuackMoveNavigation
+import com.quackmove.app.ui.theme.QuackMoveTheme
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -73,10 +72,9 @@ class MainActivity : ComponentActivity() {
 
                     navController = navController,
 
-                    mapScreen = {
-                            onOpenRegistration,
-                            onOpenChargers,
-                            onOpenRoute ->
+                    mapScreen = { onOpenRegistration,
+                                  onOpenChargers,
+                                  onOpenRoute ->
 
                         MapScreen(
 

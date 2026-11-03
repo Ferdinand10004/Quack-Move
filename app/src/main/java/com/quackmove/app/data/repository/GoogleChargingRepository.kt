@@ -1,4 +1,3 @@
-
 package com.quackmove.app.data.repository
 
 import com.quackmove.app.data.model.ChargingStation
@@ -9,9 +8,10 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-object GoogleChargingRepository {
+// Implementación del Repository con nuestro servidor.
+object GoogleChargingRepository : ChargingRepository {
 
-    suspend fun fetchStations(): List<ChargingStation> =
+    override suspend fun fetchStations(): List<ChargingStation> =
         withContext(Dispatchers.IO) {
 
             val connection = URL(

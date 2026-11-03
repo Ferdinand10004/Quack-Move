@@ -1,4 +1,3 @@
-
 package com.quackmove.app.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
@@ -26,7 +25,7 @@ class FirestoreTripRepository(
     override suspend fun saveTrip(trip: SavedTrip): String {
         val userId = getUserId()
 
-        val data = mapOf(
+        val tripDocumentData = mapOf(
             "ownerId" to userId,
             "origin" to trip.origin,
             "destination" to trip.destination,
@@ -39,7 +38,7 @@ class FirestoreTripRepository(
 
         // Evitar esperar indefinidamente por confirmación
         withTimeout(12000) {
-            document.set(data).await()
+            document.set(tripDocumentData).await()
         }
 
         return document.id

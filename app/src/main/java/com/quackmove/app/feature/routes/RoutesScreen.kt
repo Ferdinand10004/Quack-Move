@@ -1,23 +1,48 @@
-
 package com.quackmove.app.feature.routes
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.quackmove.app.data.repository.GoogleRoutesRepository
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -38,22 +63,40 @@ private fun formatNumber(value: Double): String {
 @Composable
 fun RoutesScreen(
     destination: String,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    val model: RoutesViewModel = viewModel()
 
-    val route = model.route
-    val estimate = model.batteryEstimate
+    // Inyección manual del Repository mediante Factory
+    val factory = remember {
+        RoutesViewModelFactory(
+            repository = GoogleRoutesRepository
+        )
+    }
 
-    val batteryLevel = model.departureBattery
+    val model: RoutesViewModel = viewModel(
+        factory = factory
+    )
+
+    // Observar StateFlow
+    val state by model.uiState.collectAsStateWithLifecycle()
+
+    val route = state.route
+    val estimate = state.batteryEstimate
+
+    val batteryLevel = state.departureBattery
         .toFloatOrNull()
         ?.coerceIn(0f, 100f)
         ?: 80f
 
     Scaffold(
+        modifier = modifier,
         containerColor = RouteBackground,
+
         bottomBar = {
+
             Surface(color = RouteBackground) {
+
                 Button(
                     onClick = onBack,
                     modifier = Modifier
@@ -66,8 +109,10 @@ fun RoutesScreen(
                         containerColor = RoutePurple
                     )
                 ) {
+
                     Icon(
-                        Icons.Default.ArrowBack,
+                        imageVector =
+                            Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null
                     )
 
@@ -96,23 +141,29 @@ fun RoutesScreen(
                 fontWeight = FontWeight.Bold
             )
 
+            // Vista previa del mapa
             GoogleMapPreview(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
             )
 
+            // =====================================
+            // VEHÍCULO ELÉCTRICO
+            // =====================================
 
-            // Tarjeta del vehículo
             RouteCard {
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween,
+                    verticalAlignment =
+                        Alignment.CenterVertically
                 ) {
 
                     Column {
+
                         Text(
                             text = "Mi vehículo eléctrico",
                             color = RouteText,
@@ -128,7 +179,8 @@ fun RoutesScreen(
                     }
 
                     Icon(
-                        imageVector = Icons.Default.DirectionsCar,
+                        imageVector =
+                            Icons.Default.DirectionsCar,
                         contentDescription = "Vehículo eléctrico",
                         tint = RouteGreen,
                         modifier = Modifier.size(46.dp)
@@ -139,9 +191,12 @@ fun RoutesScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween,
+                    verticalAlignment =
+                        Alignment.CenterVertically
                 ) {
+
                     Text(
                         text = "Nivel de batería",
                         color = RouteText,
@@ -156,15 +211,17 @@ fun RoutesScreen(
                     )
                 }
 
-                // Barra interactiva de batería
                 Slider(
                     value = batteryLevel,
+
                     onValueChange = { value ->
                         model.updateDepartureBattery(
                             value.roundToInt().toString()
                         )
                     },
+
                     valueRange = 0f..100f,
+
                     colors = SliderDefaults.colors(
                         thumbColor = RouteGreen,
                         activeTrackColor = RouteGreen,
@@ -174,16 +231,18 @@ fun RoutesScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween
                 ) {
+
                     Text(
-                        "0%",
+                        text = "0%",
                         color = RouteSecondary,
                         fontSize = 12.sp
                     )
 
                     Text(
-                        "100%",
+                        text = "100%",
                         color = RouteSecondary,
                         fontSize = 12.sp
                     )
@@ -203,7 +262,10 @@ fun RoutesScreen(
                 )
             }
 
-            // Información de Google Routes
+            // =====================================
+            // INFORMACIÓN DE LA RUTA
+            // =====================================
+
             RouteCard {
 
                 Text(
@@ -214,6 +276,7 @@ fun RoutesScreen(
                 )
 
                 if (destination.isNotBlank()) {
+
                     Text(
                         text = "Destino seleccionado en el mapa: " +
                                 destination,
@@ -229,13 +292,15 @@ fun RoutesScreen(
                     fontSize = 12.sp
                 )
 
-                if (model.isLoading) {
+                if (state.isLoading) {
+
                     CircularProgressIndicator(
                         color = RoutePurple
                     )
                 }
 
-                model.errorMessage?.let { error ->
+                state.errorMessage?.let { error ->
+
                     Text(
                         text = error,
                         color = RouteWarning
@@ -247,24 +312,26 @@ fun RoutesScreen(
                     HorizontalDivider(color = RouteBorder)
 
                     RouteInfoRow(
-                        "Origen",
-                        route.origin
+                        label = "Origen",
+                        value = route.origin
                     )
 
                     RouteInfoRow(
-                        "Destino",
-                        route.destination
+                        label = "Destino",
+                        value = route.destination
                     )
 
                     RouteInfoRow(
-                        "Distancia",
-                        "${formatNumber(route.distanceKm)} km"
+                        label = "Distancia",
+                        value =
+                            "${formatNumber(route.distanceKm)} km"
                     )
 
                     RouteInfoRow(
-                        "Conducción",
-                        "${route.drivingMinutes / 60} h " +
-                                "${route.drivingMinutes % 60} min"
+                        label = "Conducción",
+                        value =
+                            "${route.drivingMinutes / 60} h " +
+                                    "${route.drivingMinutes % 60} min"
                     )
 
                     Text(
@@ -276,18 +343,36 @@ fun RoutesScreen(
 
                 TextButton(
                     onClick = model::refreshRoute,
-                    enabled = !model.isLoading
+                    enabled = !state.isLoading
                 ) {
                     Text("Actualizar ruta")
                 }
             }
 
+            // =====================================
+            // FIREBASE
+            // =====================================
+
             TripsFirebaseRoute(
                 route = route,
-                batteryPercent = model.departureBattery.toDoubleOrNull()
+                batteryPercent =
+                    state.departureBattery.toDoubleOrNull()
             )
 
-            // Cálculos automáticos
+            // =====================================
+            // ROOM
+            // =====================================
+
+            TripsLocalSection(
+                route = route,
+                batteryPercent =
+                    state.departureBattery.toDoubleOrNull()
+            )
+
+            // =====================================
+            // CÁLCULO DE AUTONOMÍA
+            // =====================================
+
             if (estimate != null) {
 
                 RouteCard {
@@ -300,20 +385,25 @@ fun RoutesScreen(
                     )
 
                     RouteInfoRow(
-                        "Energía necesaria",
-                        "${formatNumber(estimate.energyRequiredKwh)} kWh"
+                        label = "Energía necesaria",
+                        value =
+                            "${formatNumber(estimate.energyRequiredKwh)} kWh"
                     )
 
                     RouteInfoRow(
-                        "Batería consumida",
-                        "${formatNumber(estimate.batteryUsedPercent)}%"
+                        label = "Batería consumida",
+                        value =
+                            "${formatNumber(estimate.batteryUsedPercent)}%"
                     )
 
                     RouteInfoRow(
-                        "Batería estimada al llegar",
-                        estimate.estimatedArrivalPercent
-                            ?.let { "${formatNumber(it)}%" }
-                            ?: "No alcanza"
+                        label = "Batería estimada al llegar",
+                        value =
+                            estimate.estimatedArrivalPercent
+                                ?.let {
+                                    "${formatNumber(it)}%"
+                                }
+                                ?: "No alcanza"
                     )
 
                     HorizontalDivider(color = RouteBorder)
@@ -350,20 +440,36 @@ fun RoutesScreen(
                     )
                 }
             }
+
+            state.validationError?.let { error ->
+
+                Text(
+                    text = error,
+                    color = RouteWarning,
+                    fontSize = 13.sp
+                )
+            }
         }
     }
 }
 
+// =====================================
+// TARJETA REUTILIZABLE
+// =====================================
+
 @Composable
 private fun RouteCard(
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         color = RoutePanel,
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, RouteBorder)
     ) {
+
         Column(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -372,15 +478,23 @@ private fun RouteCard(
     }
 }
 
+// =====================================
+// FILA REUTILIZABLE
+// =====================================
+
 @Composable
 private fun RouteInfoRow(
     label: String,
-    value: String
+    value: String,
+    modifier: Modifier = Modifier
 ) {
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
 
         Text(

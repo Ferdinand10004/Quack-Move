@@ -1,10 +1,14 @@
-
 package com.quackmove.app.feature.home
 
-import com.quackmove.app.data.model.RecentDestination
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
@@ -21,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.quackmove.app.data.model.RecentDestination
 
 // Colores de QuackMove
 private val RecentPrimaryText = Color(0xFFF5F6FF)
@@ -30,18 +35,16 @@ private val RecentIconBackground = Color(0xFF1B2941)
 private val RecentBorder = Color(0xFF405174)
 
 
-
-
-
 @Composable
 fun RecentDestinations(
     destinations: List<RecentDestination>,
     onDestinationSelected: (RecentDestination) -> Unit,
-    onViewAll: () -> Unit
+    onViewAll: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
 
         // Encabezado de la sección
@@ -97,11 +100,12 @@ fun RecentDestinations(
 @Composable
 private fun RecentDestinationRow(
     destination: RecentDestination,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),

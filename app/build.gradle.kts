@@ -1,9 +1,11 @@
-    plugins {
+plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-        id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
 
-    }
+
+}
 
 android {
     namespace = "com.quackmove.app"
@@ -53,6 +55,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+
+    implementation("androidx.room:room-runtime:2.8.5")
+    ksp("androidx.room:room-compiler:2.8.5")
 
 
 }
