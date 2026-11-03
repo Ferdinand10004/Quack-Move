@@ -43,11 +43,11 @@ object GoogleRoutesRepository : RoutesRepository {
                 val json = JSONObject(response)
 
                 RouteSummary(
-                    origin = json.getString("origen"),
-                    destination = json.getString("destino"),
-                    distanceKm = json.getDouble("distanciaKm"),
+                    origin = json.getString("origin"),
+                    destination = json.getString("destination"),
+                    distanceKm = json.getDouble("distanceKm"),
                     drivingMinutes = json.getInt(
-                        "tiempoConduccionMin"
+                        "drivingMinutes"
                     )
                 )
 

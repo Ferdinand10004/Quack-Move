@@ -122,11 +122,11 @@ class QuackMoveHandler(BaseHTTPRequestHandler):
         duration_seconds = float(route["duration"].removesuffix("s"))
 
         self.respond(200, {
-            "origen": "Ciudad de Guatemala",
-            "destino": "Flores, Petén",
-            "distanciaKm": round(distance_meters / 1000, 1),
-            "tiempoConduccionMin": round(duration_seconds / 60),
-            "nota": (
+            "origin": "Ciudad de Guatemala",
+            "destination": "Flores, Petén",
+            "distanceKm": round(distance_meters / 1000, 1),
+            "drivingMinutes": round(duration_seconds / 60),
+            "note": (
                 "Estimación sin tráfico en tiempo real. "
                 "No incluye paradas de recarga."
             )
